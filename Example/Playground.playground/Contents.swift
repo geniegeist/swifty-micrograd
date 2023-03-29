@@ -1,12 +1,6 @@
-# Swifty micrograd 
-This is a port of Karpathy's micrograd in Swift. 
+import SwiftyMicrograd
 
-### What is micrograd?
-Micrograd is a simple and tiny implementation of backpropagation opearting over scalar values. This autograd engine is enough to train neural networks. The rest is making it fast (e.g. by vectorization).
-
-### Example usage
-
-```
+// Let's compute an example taken from the micrograd repo
 let a = Value(-4.0)
 let b = Value(2.0)
 let c = a + b
@@ -20,12 +14,12 @@ let f = e**2
 let g = f / 2.0
 let g_1 = g + (10.0) / f
 
+print(g_1)
 assert(abs(g_1.data - 24.7041) < 1e-4)
 
 g_1.backward()
+
+print(a.grad)
+print(b.grad)
 assert(abs(a.grad - 138.8338) < 1e-4)
 assert(abs(b.grad - 645.5773) < 1e-4)
-```
-
-### License 
-MIT
