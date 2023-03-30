@@ -59,7 +59,7 @@ Step 19 loss 0.24020840110182842, accuracy 89.0%
 Step 20 loss 0.14478743131254226, accuracy 92.0%
 ...
 Step 99 loss 0.0, accuracy 100.0%
-
+```
 
 ### License 
 MIT
