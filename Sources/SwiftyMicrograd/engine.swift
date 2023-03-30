@@ -13,20 +13,22 @@ infix operator ** : ExponentiationPrecedence
 // Some useful enums
 public enum Op {
     case plus
+    case minus
     case mult
+    case div
     case pow
     case relu
 }
 
 // The interesting part begins here
 public class Value: CustomStringConvertible {
-    public internal(set) var data: Double
+    public var data: Double
     let children: [Value]
     let op: Op?
     public internal(set) var grad: Double = 0.0
     var _backward: (() -> Void) = {}
     
-    public var description: String { return "Value: \(data)" }
+    public var description: String { return "Value(data=\(data), grad=\(grad))" }
     
     // MARK: Init
     
@@ -52,7 +54,7 @@ public class Value: CustomStringConvertible {
             }
         }
         topologicalSort(node: self)
-
+        
         // Inititialize grad of root node to one
         self.grad = 1.0;
 
@@ -60,6 +62,12 @@ public class Value: CustomStringConvertible {
         for n in topo.reversed() {
             n._backward()
         }
+    }
+    
+    // MARK: Other
+    
+    public func flushGrad() {
+        self.grad = 0.0
     }
 }
 
@@ -76,7 +84,13 @@ public extension Value {
     }
     
     static func - (left: Value, right: Value) -> Value {
-        return left + (-1) * right
+        let out = Value(left.data - right.data, op: .minus, children: [left, right])
+        let _backward = {
+            left.grad += out.grad
+            right.grad -= out.grad
+        }
+        out._backward = _backward
+        return out
     }
     
     static func * (left: Value, right: Value) -> Value {
@@ -90,25 +104,46 @@ public extension Value {
     }
     
     static func / (left: Value, right: Value) -> Value {
-        return left * right ** -1.0
-    }
-    
-    static func ** (left: Value, right: Value) -> Value {
-        let x = pow(left.data, right.data)
-        let out = Value(x, op: .pow, children: [left])
+        let out = Value(left.data / right.data, op: .div, children: [left, right])
         let _backward = {
-            left.grad += right.data * pow(left.data, right.data - 1) * out.grad
+            left.grad += (1.0/right.data) * out.grad
+            right.grad += left.data * (-1.0 / pow(right.data, 2)) * out.grad
         }
         out._backward = _backward
         return out
+    }
+    
+    static func ** (left: Value, right: Int) -> Value {
+        let x = pow(left.data, Double(right))
+        let out = Value(x, op: .pow, children: [left])
+        let _backward = {
+            left.grad += (Double(right) * pow(left.data, Double(right - 1))) * out.grad
+        }
+        out._backward = _backward
+        return out
+    }
+    
+    prefix static func - (_ m: Value) -> Value {
+        return m * Value(-1)
     }
 }
 
 // MARK: More Operations
 public func relu(_ left: Value) -> Value {
-    let out = Value(max(left.data, 0), op: .relu, children: [left])
+    let out = Value(left.data < 0 ? 0 : left.data, op: .relu, children: [left])
     let _backward = {
         left.grad += (out.data > 0 ? 1 : 0) * out.grad
+    }
+    out._backward = _backward
+    return out
+}
+
+public func tanh(_ left: Value) -> Value {
+    let x = left.data
+    let t = (exp(2 * x) - 1.0)/(exp(2 * x) + 1)
+    let out = Value(t, children: [left])
+    let _backward = {
+        left.grad += (1 - pow(t,2)) * out.grad
     }
     out._backward = _backward
     return out
@@ -132,14 +167,6 @@ public extension Value {
         return left * Value(right)
     }
     
-    static func ** (left: Value, right: Double) -> Value {
-        return left ** Value(right)
-    }
-
-    static func ** (left: Value, right: Int) -> Value {
-        return left ** Value(Double(right))
-    }
-    
     static func / (left: Value, right: Double) -> Value {
         return left / Value(Double(right))
     }
@@ -152,7 +179,7 @@ public extension Value {
 // MARK: Hashable
 extension Value: Hashable {
     public static func == (lhs: Value, rhs: Value) -> Bool {
-        return lhs === rhs
+        return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
     
     public func hash(into hasher: inout Hasher) {

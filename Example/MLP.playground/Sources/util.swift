@@ -33,8 +33,8 @@ func csv_y(_ data: String) -> [Double] {
     return result
 }
 
-public func makeMoons() -> ([[Double]], [Double]) {
-    let X = csv(load(file: "moons_X")!)
-    let y = csv_y(load(file: "moons_y")!)
+public func makeMoonsFromCSV() -> ([[Double]], [Double]) {
+    let X = csv(load(file: "X")!)
+    let y = csv_y(load(file: "y")!)
     return (X,y)
 }
