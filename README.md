@@ -29,12 +29,12 @@ assert(abs(b.grad - 645.5773) < 1e-4)
 
 ### 3 layer network
 
-A simple 3 layer network can be explored in the Swift playground `MLP`. We achieve a 100% accuracy for a simple toy dataset. 
+A simple 3 layer network can be explored in the Swift playground `MLP`.
 ```
 let mlp = MLP(dim_in: 2, dim_outs: [16, 16, 1], activation: .relu)
 ```
 
-**Hinge loss (for the dataset `sklearn.datasets.make_moons)**
+**Hinge loss (for the dataset `sklearn.datasets.make_moons`)**
 ```
 Step 0 loss 2.333378857315669, accuracy 50.0%
 Step 1 loss 0.9342276431697976, accuracy 50.0%
