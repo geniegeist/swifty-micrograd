@@ -29,7 +29,7 @@ assert(abs(b.grad - 645.5773) < 1e-4)
 
 ### 3 layer network
 
-A simple 3 layer network can be explored in the Swift playground `MLP`.
+A simple 3 layer network can be explored in the Swift playground `MLP.playground`.
 ```
 let mlp = MLP(dim_in: 2, dim_outs: [16, 16, 1], activation: .relu)
 ```
